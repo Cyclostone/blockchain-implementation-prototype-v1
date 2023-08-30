@@ -2,6 +2,7 @@ import time
 from pubnub.pubnub import PubNub 
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.callbacks import SubscribeCallback
+from backend.blockchain.block_mk10 import Block
 
 # subscribe_key = 
 # publish_key = 
@@ -20,8 +21,23 @@ CHANNELS = {
 }
 
 class Listener(SubscribeCallback):
+    def __init__(self, blockchain):
+        self.blockchain = blockchain
+
     def message(self, pubnub, message):
         print(f'\n -- Channel: {message.channel} | Message: {message.message}')
+
+        if message.channel == CHANNELS['BLOCK']:
+            block = Block.from_json(message.message)
+            potential_chain = self.blockchain.chain[:]
+            potential_chain.append(block)
+
+        try:
+            self.blockchain.replace_chain(potential_chain)
+            print(f'\n -- Successfully replaced the local chain')
+        except Exception as e:
+            print(f'\n -- Did not replace Chain: {e}')
+
 
 
 
@@ -30,16 +46,18 @@ class PubSub():
     Handles the publish/subscribe layer of the application.
     Provides the communication between the nodes of the blockchain network.
     """
-    def __init__(self):
+    def __init__(self, blockchain):
         self.pubnub = PubNub(pnconfig)
         self.pubnub.subscribe().channels(CHANNELS).execute()
-        self.pubnub.add_listener(Listener())
+        self.pubnub.add_listener(Listener(blockchain))
 
     def publish(self, channel, message):
         """
         Publish the message object to the channel.
         """
+        self.pubnub.unsubscribe().channels([channel]).execute()
         self.pubnub.publish().channel(channel).message(message).sync()
+        self.pubnub.subscribe().channels([channel]).execute()
 
     def broadcast_block(self, block):
         """
