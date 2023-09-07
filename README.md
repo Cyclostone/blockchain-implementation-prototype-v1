@@ -1,9 +1,11 @@
 **Activate the Virtual Environment**
+
 ```
 source blockchain-env/bin/activate
 ```
 
 **Install all packages**
+
 ```
 pip install -r requirements.txt
 ```
@@ -25,4 +27,12 @@ python -m backend.app
 
 ```
 export PEER=True && python -m backend.app
+```
+
+**Run the frontend**
+
+In the frontend directory:
+
+```
+npm run start
 ```
