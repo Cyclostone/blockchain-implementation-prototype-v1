@@ -36,3 +36,11 @@ In the frontend directory:
 ```
 npm run start
 ```
+
+**Seed the backend with data**
+
+This command is for windows powershell
+
+```
+$env:SEED_DATA='True'; python -m backend.app
+```
